@@ -12,6 +12,14 @@ router = APIRouter(prefix="/api/webhook", tags=["webhook"])
 settings = get_settings()
 
 
+def _to_dict(obj) -> dict:
+    if hasattr(obj, "to_dict_recursive"):
+        return obj.to_dict_recursive()
+    if hasattr(obj, "to_dict"):
+        return obj.to_dict()
+    return dict(obj)
+
+
 @router.post("/stripe")
 async def stripe_webhook(request: Request, db: AsyncSession = Depends(get_db)):
     payload = await request.body()
@@ -29,6 +37,8 @@ async def stripe_webhook(request: Request, db: AsyncSession = Depends(get_db)):
     except stripe.SignatureVerificationError:
         raise HTTPException(status_code=400, detail="Assinatura inválida")
 
+    event = _to_dict(event)
+
     handler_map = {
         "checkout.session.completed": _handle_checkout_completed,
         "customer.subscription.updated": _handle_subscription_updated,
@@ -36,7 +46,7 @@ async def stripe_webhook(request: Request, db: AsyncSession = Depends(get_db)):
         "invoice.payment_failed": _handle_payment_failed,
     }
 
-    handler = handler_map.get(event["type"])
+    handler = handler_map.get(event.get("type"))
     if handler:
         await handler(event["data"]["object"], db)
 
@@ -44,7 +54,7 @@ async def stripe_webhook(request: Request, db: AsyncSession = Depends(get_db)):
 
 
 async def _handle_checkout_completed(session, db: AsyncSession):
-    user_id = session.get("client_reference_id") or session["metadata"].get("user_id")
+    user_id = session.get("client_reference_id") or (session.get("metadata") or {}).get("user_id")
     if not user_id:
         return
 
@@ -64,21 +74,21 @@ async def _handle_checkout_completed(session, db: AsyncSession):
     if subscription:
         sub.stripe_subscription_id = subscription
     sub.stripe_customer_id = session.get("customer") or sub.stripe_customer_id
-    sub.plan = session["metadata"].get("plan", PlanType.pro.value)
+    sub.plan = (session.get("metadata") or {}).get("plan", PlanType.pro.value)
     sub.status = SubStatus.active.value
 
     await db.commit()
 
 
 async def _handle_subscription_updated(subscription, db: AsyncSession):
+    period_end = subscription.get("current_period_end")
     await db.execute(
         update(Subscription)
-        .where(Subscription.stripe_subscription_id == subscription["id"])
+        .where(Subscription.stripe_subscription_id == subscription.get("id"))
         .values(
-            status=subscription["status"],
-            current_period_end=datetime.fromtimestamp(
-                subscription["current_period_end"], tz=timezone.utc
-            ) if subscription.get("current_period_end") else None,
+            status=subscription.get("status"),
+            current_period_end=datetime.fromtimestamp(period_end, tz=timezone.utc)
+            if period_end else None,
             stripe_price_id=subscription["items"]["data"][0]["price"]["id"],
         )
     )
@@ -88,7 +98,7 @@ async def _handle_subscription_updated(subscription, db: AsyncSession):
 async def _handle_subscription_deleted(subscription, db: AsyncSession):
     await db.execute(
         update(Subscription)
-        .where(Subscription.stripe_subscription_id == subscription["id"])
+        .where(Subscription.stripe_subscription_id == subscription.get("id"))
         .values(status=SubStatus.canceled.value, plan=PlanType.free.value)
     )
     await db.commit()
