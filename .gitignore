@@ -1,0 +1,16 @@
+# Secrets — NUNCA commitar
+.env
+*.pid
+*.log
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.db
+*.sqlite3
+
+# OS
+.DS_Store
+Thumbs.db

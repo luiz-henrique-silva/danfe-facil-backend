@@ -1,0 +1,12 @@
+.venv
+__pycache__
+*.pyc
+*.db
+.env
+.env.local
+.devcontainer
+.git
+node_modules
+test_output.pdf
+uvicorn.log
+.dev.log
