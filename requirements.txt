@@ -5,6 +5,7 @@ asyncpg>=0.30
 alembic>=1.14
 pydantic>=2.9
 pydantic-settings>=2.5
+email-validator>=2.2
 python-jose[cryptography]>=3.3
 passlib[bcrypt]>=1.7.4
 python-multipart>=0.0.12
