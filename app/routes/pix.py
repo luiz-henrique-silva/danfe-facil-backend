@@ -60,11 +60,15 @@ async def create_pix_checkout(
     }[plan]
 
     exref = f"{user.id}|{plan}"
+    idem_key = f"{exref}|{datetime.now(timezone.utc).timestamp():.0f}"
 
     async with httpx.AsyncClient(timeout=30) as client:
         resp = await client.post(
             f"{MP_API}/v1/payments",
-            headers=_mp_headers(),
+            headers={
+                **_mp_headers(),
+                "X-Idempotency-Key": idem_key,
+            },
             json={
                 "transaction_amount": float(amount),
                 "description": desc,
