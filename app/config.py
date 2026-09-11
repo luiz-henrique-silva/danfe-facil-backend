@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     MERCADOPAGO_ACCESS_TOKEN: str = ""
     MERCADOPAGO_PIX_BASICO: float = 29.9
     MERCADOPAGO_PIX_PRO: float = 49.9
-    MERCADOPAGO_PIX_BUSINESS: float = 79.0
+    MERCADOPAGO_PIX_BUSINESS: float = 79.9
 
     GOOGLE_CLIENT_ID: str = ""
     GOOGLE_CLIENT_SECRET: str = ""
