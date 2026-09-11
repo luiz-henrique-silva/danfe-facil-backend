@@ -58,7 +58,7 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
     return JSONResponse(status_code=500, content={"detail": "Erro interno do servidor"})
 
 
-@app.get("/api/health")
+@app.api_route("/api/health", methods=["GET", "HEAD"])
 async def health():
     return {"status": "ok", "app": settings.APP_NAME, "version": "1.0.0"}
 
