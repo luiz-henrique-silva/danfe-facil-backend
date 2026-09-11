@@ -25,7 +25,7 @@ PLANS = {
 
 PROCESS_LIMITS = {
     "free": settings.FREE_PROCESS_LIMIT,
-    "pro": 500,
+    "pro": 1500,
     "business": 100000,  # "ilimitado"
 }
 
