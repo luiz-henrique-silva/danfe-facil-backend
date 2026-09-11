@@ -1,3 +1,5 @@
+import logging
+
 import stripe
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
@@ -13,6 +15,8 @@ from app.schemas.subscription import (
     CheckoutResponse,
     PortalResponse,
 )
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/subscription", tags=["subscription"])
 
@@ -87,20 +91,44 @@ async def create_checkout(data: CheckoutRequest, user: User = Depends(get_curren
         sub.stripe_customer_id = customer.id
         await db.commit()
 
-    payment_methods = ["card"]
-    if settings.STRIPE_ENABLE_PIX:
-        payment_methods.append("pix")
+    payment_methods = ["card", "pix"] if settings.STRIPE_ENABLE_PIX else ["card"]
 
-    session = stripe.checkout.Session.create(
-        customer=sub.stripe_customer_id,
-        payment_method_types=payment_methods,
-        line_items=[{"price": price_id, "quantity": 1}],
-        mode="subscription",
-        success_url=f"{settings.APP_URL}/dashboard?checkout=success",
-        cancel_url=f"{settings.APP_URL}/dashboard?checkout=cancel",
-        client_reference_id=user.id,
-        metadata={"user_id": user.id, "plan": data.plan},
-    )
+    try:
+        session = stripe.checkout.Session.create(
+            customer=sub.stripe_customer_id,
+            payment_method_types=payment_methods,
+            line_items=[{"price": price_id, "quantity": 1}],
+            mode="subscription",
+            success_url=f"{settings.APP_URL}/dashboard?checkout=success",
+            cancel_url=f"{settings.APP_URL}/dashboard?checkout=cancel",
+            client_reference_id=user.id,
+            metadata={"user_id": user.id, "plan": data.plan},
+        )
+    except stripe.error.StripeError as exc:
+        logger.error("Stripe checkout failed for user %s: %s", user.id, exc)
+        if settings.STRIPE_ENABLE_PIX:
+            try:
+                session = stripe.checkout.Session.create(
+                    customer=sub.stripe_customer_id,
+                    payment_method_types=["card"],
+                    line_items=[{"price": price_id, "quantity": 1}],
+                    mode="subscription",
+                    success_url=f"{settings.APP_URL}/dashboard?checkout=success",
+                    cancel_url=f"{settings.APP_URL}/dashboard?checkout=cancel",
+                    client_reference_id=user.id,
+                    metadata={"user_id": user.id, "plan": data.plan},
+                )
+            except stripe.error.StripeError as exc2:
+                logger.error("Stripe checkout (card-only) also failed: %s", exc2)
+                raise HTTPException(
+                    status_code=400,
+                    detail="Não foi possível iniciar o pagamento. Verifique a configuração do Stripe.",
+                )
+        else:
+            raise HTTPException(
+                status_code=400,
+                detail="Não foi possível iniciar o pagamento. Verifique a configuração do Stripe.",
+            )
 
     return CheckoutResponse(url=session.url)
 
