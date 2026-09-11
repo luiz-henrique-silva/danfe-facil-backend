@@ -8,6 +8,7 @@ class SubscriptionOut(BaseModel):
     current_period_end: datetime | None = None
     process_month: int | None = None
     process_limit: int | None = None
+    unlimited: bool = False
 
 
 class CheckoutRequest(BaseModel):

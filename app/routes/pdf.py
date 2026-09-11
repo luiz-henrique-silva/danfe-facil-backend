@@ -34,12 +34,12 @@ async def _monthly_usage(user_id: str, db: AsyncSession) -> int:
     return result.scalar() or 0
 
 
-async def _get_plan(user_id: str, db: AsyncSession) -> str:
+async def _get_plan(user_id: str, db: AsyncSession) -> tuple[str, bool]:
     result = await db.execute(select(Subscription).where(Subscription.user_id == user_id))
     sub = result.scalar_one_or_none()
-    if sub and sub.status == "active":
-        return sub.plan
-    return "free"
+    if sub and sub.id:
+        return (sub.plan if sub.status == "active" else "free", bool(sub.unlimited))
+    return "free", False
 
 
 @router.post("/process")
@@ -52,11 +52,11 @@ async def upload_and_process(
     if not file.filename or not file.filename.lower().endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Somente arquivos PDF são aceitos")
 
-    plan = await _get_plan(user.id, db)
+    plan, unlimited = await _get_plan(user.id, db)
     limit = PROCESS_LIMITS.get(plan, PROCESS_LIMITS["free"])
     used = await _monthly_usage(user.id, db)
 
-    if used >= limit:
+    if not unlimited and used >= limit:
         raise HTTPException(
             status_code=402,
             detail="Você atingiu o limite de processamentos do seu plano. "
@@ -134,10 +134,11 @@ async def get_usage(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    plan = await _get_plan(user.id, db)
+    plan, unlimited = await _get_plan(user.id, db)
     used = await _monthly_usage(user.id, db)
     return {
         "plan": plan,
         "processed_month": used,
-        "limit": PROCESS_LIMITS.get(plan, PROCESS_LIMITS["free"]),
+        "limit": None if unlimited else PROCESS_LIMITS.get(plan, PROCESS_LIMITS["free"]),
+        "unlimited": unlimited,
     }

@@ -57,7 +57,8 @@ async def get_status(user: User = Depends(get_current_user), db: AsyncSession = 
         plan=sub.plan,
         status=sub.status,
         current_period_end=sub.current_period_end,
-        process_limit=PROCESS_LIMITS.get(sub.plan, PROCESS_LIMITS["free"]),
+        process_limit=None if sub.unlimited else PROCESS_LIMITS.get(sub.plan, PROCESS_LIMITS["free"]),
+        unlimited=bool(sub.unlimited),
     )
 
 
