@@ -20,6 +20,10 @@ class Settings(BaseSettings):
     STRIPE_PRICE_BUSINESS: str = ""
     STRIPE_ENABLE_PIX: bool = False
 
+    MERCADOPAGO_ACCESS_TOKEN: str = ""
+    MERCADOPAGO_PIX_PRO: float = 29.0
+    MERCADOPAGO_PIX_BUSINESS: float = 79.0
+
     GOOGLE_CLIENT_ID: str = ""
     GOOGLE_CLIENT_SECRET: str = ""
 

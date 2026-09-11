@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 from app.config import get_settings
 from app.database import engine, Base
 from app.models import user, subscription, process_history
-from app.routes import auth, user as user_routes, subscription as sub_routes, webhook, pdf
+from app.routes import auth, user as user_routes, subscription as sub_routes, webhook, pdf, pix
 
 settings = get_settings()
 logging.basicConfig(level=logging.INFO)
@@ -66,5 +66,6 @@ async def health():
 app.include_router(auth.router)
 app.include_router(user_routes.router)
 app.include_router(sub_routes.router)
+app.include_router(pix.router)
 app.include_router(webhook.router)
 app.include_router(pdf.router)
