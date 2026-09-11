@@ -16,6 +16,7 @@ class SubStatus(str, enum.Enum):
 
 class PlanType(str, enum.Enum):
     free = "free"
+    basico = "basico"
     pro = "pro"
     business = "business"
 
@@ -33,7 +34,7 @@ class Subscription(Base):
         default="free"
     )
     plan: Mapped[str] = mapped_column(
-        SAEnum("free", "pro", "business", name="plan_type"),
+        SAEnum("free", "basico", "pro", "business", name="plan_type"),
         default="free"
     )
     unlimited: Mapped[bool] = mapped_column(default=False)

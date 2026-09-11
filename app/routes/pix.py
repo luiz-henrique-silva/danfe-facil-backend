@@ -19,6 +19,7 @@ router = APIRouter(prefix="/api/pix", tags=["pix"])
 settings = get_settings()
 
 PIX_PRICES = {
+    "basico": "MERCADOPAGO_PIX_BASICO",
     "pro": "MERCADOPAGO_PIX_PRO",
     "business": "MERCADOPAGO_PIX_BUSINESS",
 }

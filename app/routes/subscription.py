@@ -23,12 +23,20 @@ router = APIRouter(prefix="/api/subscription", tags=["subscription"])
 settings = get_settings()
 
 PLANS = {
+    "basico": {"name": "Básico", "price": settings.STRIPE_PRICE_BASICO},
     "pro": {"name": "Pro", "price": settings.STRIPE_PRICE_PRO},
     "business": {"name": "Business", "price": settings.STRIPE_PRICE_BUSINESS},
 }
 
+PIX_PRICE_KEYS = {
+    "basico": "MERCADOPAGO_PIX_BASICO",
+    "pro": "MERCADOPAGO_PIX_PRO",
+    "business": "MERCADOPAGO_PIX_BUSINESS",
+}
+
 PROCESS_LIMITS = {
     "free": settings.FREE_PROCESS_LIMIT,
+    "basico": 800,
     "pro": 1500,
     "business": 100000,  # "ilimitado"
 }
@@ -37,6 +45,7 @@ PROCESS_LIMITS = {
 def stripe_enabled() -> bool:
     return bool(
         settings.STRIPE_SECRET_KEY
+        and settings.STRIPE_PRICE_BASICO
         and settings.STRIPE_PRICE_PRO
         and settings.STRIPE_PRICE_BUSINESS
     )

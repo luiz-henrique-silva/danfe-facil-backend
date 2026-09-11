@@ -14,6 +14,7 @@ router = APIRouter(prefix="/api/pdf", tags=["pdf"])
 
 PROCESS_LIMITS = {
     "free": 10,
+    "basico": 800,
     "pro": 1500,
     "business": 100000,
 }

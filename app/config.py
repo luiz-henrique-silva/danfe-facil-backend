@@ -16,12 +16,14 @@ class Settings(BaseSettings):
 
     STRIPE_SECRET_KEY: str = ""
     STRIPE_WEBHOOK_SECRET: str = ""
+    STRIPE_PRICE_BASICO: str = ""
     STRIPE_PRICE_PRO: str = ""
     STRIPE_PRICE_BUSINESS: str = ""
     STRIPE_ENABLE_PIX: bool = False
 
     MERCADOPAGO_ACCESS_TOKEN: str = ""
-    MERCADOPAGO_PIX_PRO: float = 29.0
+    MERCADOPAGO_PIX_BASICO: float = 29.9
+    MERCADOPAGO_PIX_PRO: float = 49.9
     MERCADOPAGO_PIX_BUSINESS: float = 79.0
 
     GOOGLE_CLIENT_ID: str = ""

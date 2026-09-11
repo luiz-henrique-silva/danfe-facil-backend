@@ -100,7 +100,7 @@ def _compose(data: bytes, width_mm=0, height_mm=0, compact_danfe=True):
                     src,
                     pno,
                     clip=clip,
-                    keep_proportion=False,
+                    keep_proportion=True,
                 )
                 y += h
             scales.append(min(scale_x, scale_y))
@@ -182,7 +182,7 @@ def process_pdf(data: bytes, page_size: str = DEFAULT_PAGE_SIZE) -> dict:
         page_count = doc.page_count
         doc.close()
     except Exception:
-        raise PdfProcessError("Arquivo inválido. Envie o PDF gerado pelo Mercado Livre.")
+        raise PdfProcessError("Arquivo inválido. Envie o PDF gerado pela plataforma de e-commerce.")
 
     if page_count == 0:
         raise PdfProcessError("O PDF está vazio (não possui páginas).")
