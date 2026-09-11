@@ -20,6 +20,9 @@ class Settings(BaseSettings):
     STRIPE_PRICE_BUSINESS: str = ""
     STRIPE_ENABLE_PIX: bool = False
 
+    GOOGLE_CLIENT_ID: str = ""
+    GOOGLE_CLIENT_SECRET: str = ""
+
     SMTP_HOST: str = ""
     SMTP_PORT: int = 587
     SMTP_USER: str = ""
