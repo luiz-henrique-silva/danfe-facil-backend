@@ -54,6 +54,7 @@ async def create_pix_checkout(
         raise HTTPException(status_code=503, detail="Preço PIX não configurado")
 
     desc = {
+        "basico": "UniDANFE - Assinatura Básico (1 mês)",
         "pro": "UniDANFE - Assinatura Pro (1 mês)",
         "business": "UniDANFE - Assinatura Business (1 mês)",
     }[plan]
