@@ -82,7 +82,9 @@ async def create_checkout(data: CheckoutRequest, user: User = Depends(get_curren
         db.add(sub)
         await db.flush()
 
-    if not sub.stripe_customer_id:
+    if not sub.stripe_customer_id or not sub.stripe_customer_id.startswith("cus_"):
+        if sub.stripe_customer_id and not sub.stripe_customer_id.startswith("cus_"):
+            sub.stripe_customer_id = None
         customer = stripe.Customer.create(
             email=user.email,
             name=user.name or "",
