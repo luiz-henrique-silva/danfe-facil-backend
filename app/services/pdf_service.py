@@ -46,7 +46,7 @@ def _barcode_crop_rect(page):
 def _qr_image_info(page):
     """Imagem quase quadrada (QR code) de maior area na pagina."""
     infos = []
-    for info in page.get_image_info(xref=True):
+    for info in page.get_image_info(xrefs=True):
         bbox = info.get("bbox") or (0, 0, 0, 0)
         w = bbox[2] - bbox[0]
         h = bbox[3] - bbox[1]
