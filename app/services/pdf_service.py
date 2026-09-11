@@ -24,9 +24,31 @@ class PdfProcessError(Exception):
     pass
 
 
+_DANFE_HDR_RE = re.compile(
+    r"saida|n[uú]mero|s[eé]rie|emiss[aã]o|chave de acesso|protocolo|autoriza",
+    re.IGNORECASE,
+)
+
+
 def _is_danfe_page(page) -> bool:
     text = page.get_text("text").lower()
     return "danfe" in text or "chave de acesso" in text
+
+
+def _danfe_header_bottom(page):
+    """y final da faixa do cabeçalho da DANFE (saida/número/protocolo), ou 0."""
+    bottom = 0.0
+    d = page.get_text("dict")
+    for b in d["blocks"]:
+        if b["type"] != 0:
+            continue
+        for l in b["lines"]:
+            if l["bbox"][1] > 60.0:
+                continue
+            txt = "".join(s["text"] for s in l["spans"]).strip()
+            if txt and _DANFE_HDR_RE.search(txt):
+                bottom = max(bottom, l["bbox"][3])
+    return bottom
 
 
 def _barcode_crop_rect(page):
@@ -48,9 +70,16 @@ def _page_spec(src, page_no, compact_danfe):
     rect = p.rect
     clip = rect
     if compact_danfe and page_no % 2 == 1 and _is_danfe_page(p):
+        y0 = 0.0
+        hdr = _danfe_header_bottom(p)
+        if hdr > 0:
+            y0 = hdr + 2.0
+        y1 = rect.height
         c = _barcode_crop_rect(p)
         if c is not None:
-            clip = c
+            y1 = c.y1
+        if y1 > y0:
+            clip = pymupdf.Rect(0, y0, rect.width, y1)
     return (page_no, rect, clip)
 
 
