@@ -29,6 +29,7 @@ async def _monthly_usage(user_id: str, db: AsyncSession) -> int:
     result = await db.execute(
         select(func.count(ProcessHistory.id)).where(
             ProcessHistory.user_id == user_id,
+            ProcessHistory.status == "success",
             ProcessHistory.created_at >= _month_start(),
         )
     )
