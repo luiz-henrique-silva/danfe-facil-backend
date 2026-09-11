@@ -43,59 +43,6 @@ def _barcode_crop_rect(page):
     return pymupdf.Rect(0, 0, page.rect.width, bottom)
 
 
-def _qr_image_info(page):
-    """Imagem quase quadrada (QR code) de maior area na pagina."""
-    infos = []
-    for info in page.get_image_info(xrefs=True):
-        bbox = info.get("bbox") or (0, 0, 0, 0)
-        w = bbox[2] - bbox[0]
-        h = bbox[3] - bbox[1]
-        if w <= 0 or h <= 0:
-            continue
-        aspect = w / h
-        if 0.7 <= aspect <= 1.45:
-            infos.append(info)
-    if not infos:
-        return None
-    infos.sort(
-        key=lambda i: (i["bbox"][2] - i["bbox"][0]) * (i["bbox"][3] - i["bbox"][1]),
-        reverse=True,
-    )
-    return infos[0]
-
-
-def _redraw_qr_square(page, src, pno, info, target, scale_x, scale_y, clip):
-    """Redesenha a imagem do QR no tamanho correto (quadrado), sem esticar."""
-    bx0, by0, bx1, by1 = info["bbox"]
-    xref = info["xref"]
-    ox = target.x0
-    oy = target.y0
-
-    out_x0 = ox + (bx0 - clip.x0) * scale_x
-    out_x1 = ox + (bx1 - clip.x0) * scale_x
-    out_y0 = oy + (by0 - clip.y0) * scale_y
-    out_y1 = oy + (by1 - clip.y0) * scale_y
-    w_out = out_x1 - out_x0
-    h_out = out_y1 - out_y0
-    if w_out <= 0 or h_out <= 0:
-        return
-
-    cover = pymupdf.Rect(out_x0, out_y0, out_x1, out_y1)
-    page.draw_rect(cover, color=None, fill=(1, 1, 1))
-
-    side = min(w_out, h_out)
-    cx = (out_x0 + out_x1) / 2.0
-    cy = (out_y0 + out_y1) / 2.0
-    square = pymupdf.Rect(cx - side / 2, cy - side / 2, cx + side / 2, cy + side / 2)
-
-    try:
-        imgdata = src.extract_image(xref)
-        if imgdata:
-            page.insert_image(square, stream=imgdata["image"], keep_proportion=True)
-    except Exception:
-        pass
-
-
 def _page_spec(src, page_no, compact_danfe):
     p = src[page_no]
     rect = p.rect
@@ -148,20 +95,13 @@ def _compose(data: bytes, width_mm=0, height_mm=0, compact_danfe=True):
                 w = rect.width * scale_x
                 h = clip.height * scale_y
                 x0 = (out_w - w) / 2.0
-                target = pymupdf.Rect(x0, y, x0 + w, y + h)
                 page.show_pdf_page(
-                    target,
+                    pymupdf.Rect(x0, y, x0 + w, y + h),
                     src,
                     pno,
                     clip=clip,
                     keep_proportion=False,
                 )
-
-                if abs(scale_x - scale_y) > 0.02:
-                    qr = _qr_image_info(src[pno])
-                    if qr is not None:
-                        _redraw_qr_square(page, src, pno, qr, target, scale_x, scale_y, clip)
-
                 y += h
             scales.append(min(scale_x, scale_y))
 
