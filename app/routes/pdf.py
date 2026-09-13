@@ -27,7 +27,7 @@ def _month_start() -> datetime:
 
 async def _monthly_usage(user_id: str, db: AsyncSession) -> int:
     result = await db.execute(
-        select(func.count(ProcessHistory.id)).where(
+        select(func.coalesce(func.sum(ProcessHistory.pages_generated), 0)).where(
             ProcessHistory.user_id == user_id,
             ProcessHistory.status == "success",
             ProcessHistory.created_at >= _month_start(),
@@ -87,6 +87,7 @@ async def upload_and_process(
         filename=file.filename,
         status="success",
         result_size=len(result["output_data"]),
+        pages_generated=result["pages_generated"],
     )
     db.add(history)
     await db.commit()

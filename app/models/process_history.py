@@ -14,4 +14,5 @@ class ProcessHistory(Base):
     status: Mapped[str] = mapped_column(String(20), default="success")  # success | error
     error_message: Mapped[str | None] = mapped_column(String(500))
     result_size: Mapped[int | None] = mapped_column(default=0)  # bytes do PDF gerado
+    pages_generated: Mapped[int | None] = mapped_column(default=0)  # páginas de saída geradas
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

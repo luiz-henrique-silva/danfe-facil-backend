@@ -4,6 +4,7 @@ import stripe
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from sqlalchemy import text
 from app.config import get_settings
 from app.database import engine, Base
 from app.models import user, subscription, process_history
@@ -41,6 +42,12 @@ app.add_middleware(
 async def on_startup():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        await conn.execute(
+            text(
+                "ALTER TABLE process_history "
+                "ADD COLUMN IF NOT EXISTS pages_generated INTEGER DEFAULT 0"
+            )
+        )
 
 
 @app.middleware("http")
