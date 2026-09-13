@@ -36,7 +36,7 @@ class Settings(BaseSettings):
     EMAIL_FROM: str = "noreply@unidanfe.com.br"
     RESEND_API_KEY: str = ""
 
-    FREE_PROCESS_LIMIT: int = 10
+    FREE_PROCESS_LIMIT: int = 50
 
     class Config:
         env_file = ".env"

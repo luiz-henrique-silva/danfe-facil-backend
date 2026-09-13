@@ -9,11 +9,14 @@ from app.models.process_history import ProcessHistory
 from app.models.subscription import Subscription
 from app.models.user import User
 from app.services.pdf_service import process_pdf, PdfProcessError
+from app.config import get_settings
 
 router = APIRouter(prefix="/api/pdf", tags=["pdf"])
 
+settings = get_settings()
+
 PROCESS_LIMITS = {
-    "free": 10,
+    "free": settings.FREE_PROCESS_LIMIT,
     "basico": 800,
     "pro": 1500,
     "business": 100000,
