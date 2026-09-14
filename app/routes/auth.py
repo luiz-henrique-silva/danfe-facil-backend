@@ -14,6 +14,7 @@ from app.schemas.auth import (
     ResetPasswordRequest,
 )
 from app.services.security import hash_password, verify_password, create_token, decode_token
+from app.services.email_validation import is_disposable_email
 from app.services.email_service import send_password_reset_email, send_welcome_email
 import httpx
 from urllib.parse import urlencode
@@ -113,6 +114,12 @@ async def register(data: RegisterRequest, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(User).where(User.email == data.email.lower()))
     if result.scalar_one_or_none():
         raise HTTPException(status_code=409, detail="Email já cadastrado")
+
+    if is_disposable_email(data.email):
+        raise HTTPException(
+            status_code=400,
+            detail="Use um email permanente (endereços temporários não são aceitos).",
+        )
 
     user = User(
         email=data.email.lower(),
