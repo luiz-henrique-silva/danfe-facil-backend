@@ -1,6 +1,7 @@
 from datetime import timedelta
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
 from app.models.subscription import Subscription, SubStatus, PlanType
@@ -84,15 +85,25 @@ async def google_callback(code: str, state: str | None = None, db: AsyncSession 
     if not user:
         user = User(email=email, name=info.get("name"), google_id=info.get("id"))
         db.add(user)
-        await db.flush()
+        try:
+            await db.flush()
 
-        sub = Subscription(
-            user_id=user.id,
-            status=SubStatus.free.value,
-            plan=PlanType.free.value,
-        )
-        db.add(sub)
-        await db.commit()
+            sub = Subscription(
+                user_id=user.id,
+                status=SubStatus.free.value,
+                plan=PlanType.free.value,
+            )
+            db.add(sub)
+            await db.commit()
+        except IntegrityError:
+            # corrida: outro callback criou o usuário no mesmo instante — reusa
+            await db.rollback()
+            result = await db.execute(select(User).where(User.email == email))
+            user = result.scalar_one_or_none()
+            if user is None:
+                raise HTTPException(
+                    status_code=500, detail="Erro ao criar a conta. Tente novamente."
+                )
     else:
         if user.google_id != info.get("id"):
             user.google_id = info.get("id")
