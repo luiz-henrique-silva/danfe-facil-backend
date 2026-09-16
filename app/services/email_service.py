@@ -8,12 +8,12 @@ from app.config import get_settings
 async def send_password_reset_email(to_email: str, reset_token: str) -> None:
     settings_obj = get_settings()
     reset_url = f"{settings_obj.APP_URL}/redefinir-senha?token={reset_token}"
-    subject = "Redefinir senha - UniDANFE"
+    subject = "Redefinir senha - DANFEpro"
 
     html = f"""
     <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;
                 background: #111111; border-radius: 12px; color: #ffffff;">
-        <h1 style="color: #22C55E; margin: 0 0 16px;">UniDANFE</h1>
+        <h1 style="color: #22C55E; margin: 0 0 16px;">DANFEpro</h1>
         <p style="margin: 0 0 24px; color: #a1a1a1;">Recebemos um pedido para redefinir a senha da sua conta.</p>
         <a href="{reset_url}"
            style="display: inline-block; background: #22C55E; color: #000; padding: 12px 24px;
@@ -30,7 +30,7 @@ async def send_password_reset_email(to_email: str, reset_token: str) -> None:
 
 async def send_welcome_email(to_email: str, name: str) -> None:
     settings_obj = get_settings()
-    subject = "Bem-vindo ao UniDANFE!"
+    subject = "Bem-vindo ao DANFEpro!"
     html = f"""
     <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;
                 background: #111111; border-radius: 12px; color: #ffffff;">

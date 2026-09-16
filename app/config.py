@@ -3,7 +3,7 @@ from functools import lru_cache
 
 
 class Settings(BaseSettings):
-    APP_NAME: str = "UniDANFE"
+    APP_NAME: str = "DANFEpro"
     APP_URL: str = "http://localhost:3000"
     BACKEND_URL: str = "http://localhost:8000"
 

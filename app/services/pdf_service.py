@@ -136,9 +136,9 @@ def _compose(data: bytes, width_mm=0, height_mm=0, compact_danfe=True):
 
         out.set_metadata(
             {
-                "title": "UniDANFE - PDF processado",
-                "producer": "UniDANFE SaaS",
-                "creator": "UniDANFE",
+                "title": "DANFEpro - PDF processado",
+                "producer": "DANFEpro SaaS",
+                "creator": "DANFEpro",
             }
         )
         out.save(out_buffer, garbage=3, deflate=True)
